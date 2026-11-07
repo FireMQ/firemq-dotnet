@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_NOLOGO: 1
+
+jobs:
+  build:
+    name: Build, unit tests and pack
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Build
+        run: dotnet build -c Release
+      - name: Unit tests
+        run: dotnet test -c Release --no-build
+      - name: Pack
+        run: dotnet pack src/FireMQ.Client -c Release --no-build -o artifacts
+
+  integration:
+    name: Conformance, integration tests and examples
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The broker and the conformance runner. The ref moves to `main` once
+      # FireMQ/firemq#38 merges.
+      - uses: actions/checkout@v4
+        with:
+          repository: FireMQ/firemq
+          ref: b90a2ff9bda15a398c6957bfb291e4a9db9957ab
+          path: firemq
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: firemq
+      - name: Build firemq and firemq-conformance
+        working-directory: firemq
+        run: cargo build -p firemq -p firemq-conformance
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Build
+        run: dotnet build -c Release
+
+      - name: Conformance suite
+        run: >-
+          firemq/target/debug/firemq-conformance run
+          --driver "dotnet conformance/Driver/bin/Release/net8.0/firemq-dotnet-conformance-driver.dll"
+
+      - name: Start firemq
+        run: |
+          openssl req -x509 -newkey rsa:2048 -nodes -days 2 -subj "/CN=localhost" \
+            -addext "subjectAltName=DNS:localhost,IP:127.0.0.1" \
+            -keyout "$RUNNER_TEMP/key.pem" -out "$RUNNER_TEMP/cert.pem"
+          firemq/target/debug/firemq --ephemeral \
+            --tls-cert "$RUNNER_TEMP/cert.pem" --tls-key "$RUNNER_TEMP/key.pem" \
+            > "$RUNNER_TEMP/firemq.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/firemq.pid"
+          for port in 5673 5674; do
+            for i in $(seq 1 60); do
+              (echo > /dev/tcp/127.0.0.1/$port) 2>/dev/null && break
+              sleep 0.5
+            done
+          done
+          cat "$RUNNER_TEMP/firemq.log"
+
+      - name: Integration tests
+        env:
+          FIREMQ_URL: fire://localhost:5673
+          FIREMQ_TLS_URL: fires://localhost:5674
+          FIREMQ_TLS_CA: ${{ runner.temp }}/cert.pem
+        run: dotnet test -c Release --no-build
+
+      - name: Examples
+        env:
+          FIREMQ_URL: fire://localhost:5673
+        run: |
+          for example in hello_world work_queues publish_subscribe routing topics rpc; do
+            timeout 60 dotnet examples/Examples/bin/Release/net8.0/Examples.dll "$example"
+          done
+
+      - name: Broker log
+        if: failure()
+        run: cat "$RUNNER_TEMP/firemq.log" || true
+      - name: Stop firemq
+        if: always()
+        run: kill "$(cat "$RUNNER_TEMP/firemq.pid")" 2>/dev/null || true

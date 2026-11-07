@@ -1,0 +1,63 @@
+name: Publish
+
+# Packs FireMQ.Client and pushes it to nuget.org when a version tag such as v0.1.0 is
+# pushed. The push is skipped until the repository has a NUGET_API_KEY secret.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_NOLOGO: 1
+
+jobs:
+  token:
+    name: Check for NUGET_API_KEY
+    runs-on: ubuntu-latest
+    outputs:
+      present: ${{ steps.check.outputs.present }}
+    steps:
+      - id: check
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if [ -n "$NUGET_API_KEY" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::NUGET_API_KEY is not set; skipping the NuGet push"
+          fi
+
+  publish:
+    name: dotnet pack and nuget push
+    needs: token
+    if: needs.token.outputs.present == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Check that the tag matches the version
+        run: |
+          version="$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' Directory.Build.props | head -n 1)"
+          test "v$version" = "$GITHUB_REF_NAME"
+      - run: dotnet build -c Release
+      - run: dotnet test -c Release --no-build
+      - run: dotnet pack src/FireMQ.Client -c Release --no-build -o artifacts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nuget
+          path: artifacts/
+      - name: Push to nuget.org
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: >-
+          dotnet nuget push "artifacts/*.nupkg"
+          --api-key "$NUGET_API_KEY"
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
