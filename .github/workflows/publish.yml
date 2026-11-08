@@ -1,11 +1,18 @@
 name: Publish
 
 # Packs FireMQ.Client and pushes it to nuget.org when a version tag such as v0.1.0 is
-# pushed. The push is skipped until the repository has a NUGET_API_KEY secret.
+# pushed. To publish a tag that already exists, run the workflow by hand and pass the
+# tag. The push is skipped until the repository has a NUGET_API_KEY secret.
 
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag to publish, for example v0.1.0
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -37,15 +44,23 @@ jobs:
     needs: token
     if: needs.token.outputs.present == 'true'
     runs-on: ubuntu-latest
+    env:
+      # The pushed tag, or the tag passed to a manual run.
+      TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ env.TAG }}
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
       - name: Check that the tag matches the version
         run: |
           version="$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' Directory.Build.props | head -n 1)"
-          test "v$version" = "$GITHUB_REF_NAME"
+          if [ "v$version" != "$TAG" ]; then
+            echo "::error::Tag $TAG does not match the version $version in Directory.Build.props"
+            exit 1
+          fi
       - run: dotnet build -c Release
       - run: dotnet test -c Release --no-build
       - run: dotnet pack src/FireMQ.Client -c Release --no-build -o artifacts
