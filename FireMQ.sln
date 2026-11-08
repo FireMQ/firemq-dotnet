@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{52A6612A-6B27-4894-8EE7-D6B0849F8ADD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FireMQ.Client", "src\FireMQ.Client\FireMQ.Client.csproj", "{D988C8D6-7D08-40F7-96AA-7DC457C5077B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{00D6B022-5BAE-43EB-A45B-C06500F13175}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FireMQ.Client.Tests", "tests\FireMQ.Client.Tests\FireMQ.Client.Tests.csproj", "{76066C98-AF8D-4FD9-8273-EE84D85C5CB2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "conformance", "conformance", "{55A74E47-F787-4627-953D-C181E74C6226}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Driver", "conformance\Driver\Driver.csproj", "{833A49FF-C31A-453B-9785-9F68591F32A7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{27C094A9-0C37-4F65-AEB7-05E9B55BD6EE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examples", "examples\Examples\Examples.csproj", "{7519A9DF-95F1-48D1-9274-90AC57CAE4FA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D988C8D6-7D08-40F7-96AA-7DC457C5077B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D988C8D6-7D08-40F7-96AA-7DC457C5077B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D988C8D6-7D08-40F7-96AA-7DC457C5077B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D988C8D6-7D08-40F7-96AA-7DC457C5077B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76066C98-AF8D-4FD9-8273-EE84D85C5CB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76066C98-AF8D-4FD9-8273-EE84D85C5CB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76066C98-AF8D-4FD9-8273-EE84D85C5CB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76066C98-AF8D-4FD9-8273-EE84D85C5CB2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{833A49FF-C31A-453B-9785-9F68591F32A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{833A49FF-C31A-453B-9785-9F68591F32A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{833A49FF-C31A-453B-9785-9F68591F32A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{833A49FF-C31A-453B-9785-9F68591F32A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7519A9DF-95F1-48D1-9274-90AC57CAE4FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7519A9DF-95F1-48D1-9274-90AC57CAE4FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7519A9DF-95F1-48D1-9274-90AC57CAE4FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7519A9DF-95F1-48D1-9274-90AC57CAE4FA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D988C8D6-7D08-40F7-96AA-7DC457C5077B} = {52A6612A-6B27-4894-8EE7-D6B0849F8ADD}
+		{76066C98-AF8D-4FD9-8273-EE84D85C5CB2} = {00D6B022-5BAE-43EB-A45B-C06500F13175}
+		{833A49FF-C31A-453B-9785-9F68591F32A7} = {55A74E47-F787-4627-953D-C181E74C6226}
+		{7519A9DF-95F1-48D1-9274-90AC57CAE4FA} = {27C094A9-0C37-4F65-AEB7-05E9B55BD6EE}
+	EndGlobalSection
+EndGlobal
